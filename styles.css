@@ -71,6 +71,8 @@ h1 {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  position: relative;
+  z-index: 3; /* Ensures it's above the background image */
 }
 
 /* Search container */
