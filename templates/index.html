@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=412, initial-scale=1.0" />
+  <title>KpRokzz's Music Converter</title>
+  <!-- Include the updated CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Add Google Fonts link for 'Borel' -->
+  <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <!-- Background image -->
+    <img src="{{ url_for('static', filename='assets/bg-image.jpg') }}" class="bg-image" alt="bg">
+
+    <!-- Title Section -->
+    <h1>KpRokzz's Music Converter</h1>
+
+    <!-- Subheading with icons on either side -->
+    <div class="subheading-container">
+      <img src="{{ url_for('static', filename='assets/music-note.png') }}" class="subheading-icon" alt="music-note">
+      <p class="subheading">Made by me. For you.</p>
+      <img src="{{ url_for('static', filename='assets/heart-music.png') }}" class="subheading-icon" alt="heart">
+    </div>
+
+    <!-- Search bar -->
+    <form class="search-box">
+      <input type="text" placeholder="Paste that YouTube link here">
+      <img src="{{ url_for('static', filename='assets/search-icon.png') }}" alt="search">
+    </form>
+
+    <!-- Social buttons row -->
+    <div class="social-row">
+      <a href="https://github.com" class="social-btn">
+        <img src="{{ url_for('static', filename='assets/github-icon.png') }}" alt="GitHub">
+      </a>
+      <a href="https://youtube.com" class="social-btn">
+        <img src="{{ url_for('static', filename='assets/youtube-icon.png') }}" alt="YouTube">
+      </a>
+      <a href="https://instagram.com" class="social-btn">
+        <img src="{{ url_for('static', filename='assets/instagram-icon.png') }}" alt="Instagram">
+      </a>
+    </div>
+
+    <!-- Footer Note -->
+    <p class="footer-note">
+      Note: This is a private and a learning project. YouTube don’t sue me,  
+      I don’t plan on making money from this.
+    </p>
+  </div>
+</body>
+</html>
+
