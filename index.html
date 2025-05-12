@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=412, initial-scale=1.0" />
+  <title>KpRokzz's Music Converter</title>
+  <!-- Include the updated CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <!-- Add Google Fonts link for 'Borel' -->
+  <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script> <!-- SweetAlert for popups -->
+</head>
+<body>
+  <div class="container">
+    <!-- Background image -->
+    <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assets/bg-image.jpg" class="bg-image" alt="bg">
+
+    <!-- Title Section -->
+    <h1>KpRokzz's Music Converter</h1>
+
+    <!-- Subheading with icons on either side -->
+    <div class="subheading-container">
+      <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assets/music-note.png" class="subheading-icon" alt="music-note">
+      <p class="subheading">Made by me. For you.</p>
+      <img src="{{ url_for('static', filename='assets/heart-music.png') }}" class="subheading-icon" alt="heart">
+    </div>
+
+    <!-- Search bar -->
+    <form class="search-box" id="search-form">
+      <input type="text" id="youtube_url" placeholder="Paste that YouTube link here" required>
+      <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assetssearch-icon.png" alt="search">
+    </form>
+
+    <!-- Social buttons row -->
+    <div class="social-row">
+      <a href="https://github.com/krishnapriya-n/music-converter" class="social-btn">
+        <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assets/github-icon.png" alt="GitHub">
+      </a>
+      <a href="https://www.youtube.com/@KpRokzzCodes" class="social-btn">
+        <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assets/youtube-icon.png" alt="YouTube">
+      </a>
+      <a href="https://www.instagram.com/kprokzz/" class="social-btn">
+        <img src="https://github.com/krishnapriya-n/music-converter/blob/c946f9f2bdb0d9881e1194e50e15a0ac0185f341/static/assets/instagram-icon.png" alt="Instagram">
+      </a>
+    </div>
+
+    <!-- Footer Note -->
+    <p class="footer-note">
+      Note: This is a private and a learning project. YouTube don’t sue me,  
+      I don’t plan on making money from this.
+    </p>
+  </div>
+
+
+  <!-- Modal for showing thumbnail and asking for MP3 download -->
+  <div id="videoModal" class="video-modal" style="display: none;">
+    <div class="modal-content">
+      <img id="videoThumbnail" src="" alt="Video Thumbnail" class="video-thumbnail"/>
+      <div class="modal-buttons">
+        <button id="downloadBtn">Download MP3</button>
+        <button id="closeBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Handle form submission (when user enters YouTube link)
+    document.getElementById('search-form').addEventListener('submit', async function (e) {
+      e.preventDefault(); // Prevent the form from submitting normally
+
+      const youtubeUrl = document.getElementById('youtube_url').value;
+
+      if (!youtubeUrl) {
+        return Swal.fire('Please enter a YouTube link!');
+      }
+
+      // Send AJAX request to backend to get video info
+      const response = await fetch('/get_video_info', {
+        method: 'POST',
+        body: JSON.stringify({ url: youtubeUrl }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const data = await response.json();
+
+      if (data.success) {
+        // If video info is found, show the modal with the thumbnail
+        document.getElementById('videoThumbnail').src = data.thumbnail;
+        document.getElementById('videoModal').style.display = 'block';
+
+        // Handle the "Download MP3" button click
+        document.getElementById('downloadBtn').onclick = function () {
+          window.location.href = '/download/' + data.mp3_filename;
+        };
+
+        // Close modal on "Close" button click
+        document.getElementById('closeBtn').onclick = function () {
+          document.getElementById('videoModal').style.display = 'none';
+        };
+      } else {
+        // If the video was not found or invalid
+        Swal.fire('Please check the link again');
+      }
+    });
+  </script>
+</body>
+</html>
