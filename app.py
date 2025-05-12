@@ -1,60 +1,57 @@
-from flask import Flask, request, render_template, send_from_directory
-import yt_dlp
 import os
+import tempfile
+from flask import Flask, request, jsonify
+from yt_dlp import YoutubeDL
+from google.cloud import storage
+from uuid import uuid4
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
-if not os.path.exists(app.config['UPLOAD_FOLDER']):
-    os.makedirs(app.config['UPLOAD_FOLDER'])
+# Replace with your actual bucket name
+BUCKET_NAME = "music-converter-6dc2b.appspot.com"
 
-# Method to download the YouTube video using yt-dlp with cookies
-def download_video(youtube_url, download_path, cookies_path=None):
+# Initialize GCS client
+storage_client = storage.Client()
+bucket = storage_client.bucket(BUCKET_NAME)
+
+@app.route('/', methods=['POST'])
+def convert_video():
+    data = request.get_json()
+    url = data.get('url')
+
+    if not url:
+        return jsonify({"success": False, "message": "Missing URL"}), 400
+
     try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),
-            'noplaylist': True,
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-        }
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_template = os.path.join(temp_dir, '%(title)s.%(ext)s')
 
-        if cookies_path:
-            ydl_opts['cookiefile'] = cookies_path
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': output_template,
+                'noplaylist': True,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }]
+            }
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(youtube_url, download=True)
-            video_path = ydl.prepare_filename(info_dict)
-            return video_path
+            with YoutubeDL(ydl_opts) as ydl:
+                info_dict = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info_dict).replace(".webm", ".mp3").replace(".m4a", ".mp3")
+
+            blob_name = f"mp3s/{uuid4().hex}.mp3"
+            blob = bucket.blob(blob_name)
+            blob.upload_from_filename(filename)
+            blob.make_public()
+
+            return jsonify({"success": True, "url": blob.public_url})
+
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        youtube_url = request.form['youtube_url']
-        cookies_file = request.files.get('cookies_file')
-        cookies_path = None
-        if cookies_file:
-            cookies_path = os.path.join(app.config['UPLOAD_FOLDER'], cookies_file.filename)
-            cookies_file.save(cookies_path)
-
-        video_path = download_video(youtube_url, app.config['UPLOAD_FOLDER'], cookies_path)
-        if video_path:
-            mp3_path = video_path.replace(".webm", ".mp3")  
-            return render_template('index.html', download_url=mp3_path)
-        else:
-            return "Error: Unable to download the video. Please check the URL or cookies file."
-
-    return render_template('index.html')
-
-@app.route('/download/<filename>')
-def download_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+# Export for Cloud Functions entry point
+def convert_video_to_mp3(request):
+    with app.app_context():
+        return convert_video()
