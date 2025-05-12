@@ -72,33 +72,30 @@
   <script>
     document.getElementById('search-form').addEventListener('submit', async function (e) {
       e.preventDefault();
-      const youtubeUrl = document.getElementById('youtube_url').value;
+      const youtubeUrl = document.getElementById('youtube_url').value.trim();
 
       if (!youtubeUrl) {
         return Swal.fire('Please enter a YouTube link!');
       }
 
-      const response = await fetch('/get_video_info', {
-        method: 'POST',
-        body: JSON.stringify({ url: youtubeUrl }),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      try {
+        const response = await fetch('/', {
+          method: 'POST',
+          body: JSON.stringify({ url: youtubeUrl }),
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data.success) {
-        document.getElementById('videoThumbnail').src = data.thumbnail;
-        document.getElementById('videoModal').style.display = 'block';
-
-        document.getElementById('downloadBtn').onclick = function () {
-          window.location.href = '/download/' + data.mp3_filename;
-        };
-
-        document.getElementById('closeBtn').onclick = function () {
-          document.getElementById('videoModal').style.display = 'none';
-        };
-      } else {
-        Swal.fire('Please check the link again');
+        if (data.success) {
+          // Skip modal and go straight to download
+          window.open(data.url, '_blank');
+        } else {
+          Swal.fire(data.message || 'Something went wrong!');
+        }
+      } catch (err) {
+        Swal.fire('Error contacting the server.');
+        console.error(err);
       }
     });
   </script>
