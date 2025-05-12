@@ -4,8 +4,10 @@ from flask import Flask, request, jsonify
 from yt_dlp import YoutubeDL
 from google.cloud import storage
 from uuid import uuid4
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Replace with your actual bucket name
 BUCKET_NAME = "music-converter-6dc2b.appspot.com"
